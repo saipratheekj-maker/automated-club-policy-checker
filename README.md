@@ -23,48 +23,6 @@ UniClub replaces manual administrator review with an automated policy engine tha
 
 ---
 
-## Directory Structure
-
-```
-uniclub/
-│
-├── frontend/
-│   └── uniclub.html                  # Complete frontend (single file)
-│
-├── backend/
-│   ├── server.js                     # Main Express server & all API routes
-│   ├── package.json                  # Node.js dependencies
-│   ├── .env.example                  # Environment variables template
-│   ├── .env                          # Your actual config (never commit this)
-│   │
-│   ├── config/
-│   │   └── db.js                     # MySQL connection pool setup
-│   │
-│   ├── middleware/
-│   │   └── auth.js                   # JWT auth middleware
-│   │
-│   ├── routes/
-│   │   ├── auth.routes.js            # POST /auth/admin/login, /auth/club/login
-│   │   ├── application.routes.js     # GET/POST /applications, approve, reject
-│   │   ├── club.routes.js            # GET/PATCH /clubs, toggle status
-│   │   ├── member.routes.js          # GET/POST/DELETE /clubs/:id/members
-│   │   ├── event.routes.js           # GET/POST/DELETE /clubs/:id/events
-│   │   ├── rule.routes.js            # GET/POST/DELETE /rules
-│   │   └── user.routes.js            # PATCH /users/credentials
-│   │
-│   └── controllers/
-│       ├── auth.controller.js        # Admin and club head login logic
-│       ├── application.controller.js # Submit, list, approve, reject logic
-│       ├── club.controller.js        # Club listing and status toggle logic
-│       ├── member.controller.js      # Add and remove member logic
-│       ├── event.controller.js       # Add and remove event logic
-│       ├── rule.controller.js        # Add and delete rule logic
-│       └── user.controller.js        # Change credentials logic
-│
-└── database/
-    └── uniclub_schema.sql            # Full MySQL schema + seed data
-```
-
 ---
 
 ## Features
@@ -128,37 +86,6 @@ rules          -- All policy rules including custom rules added by admin
 ```
 
 ---
-
-## API Endpoints
-
-```
-POST   /auth/admin/login              Admin login
-POST   /auth/club/login               Club head login
-
-POST   /applications                  Submit new application
-GET    /applications                  List all applications (admin)
-GET    /applications/:id              Get single application (admin)
-POST   /applications/:id/approve      Approve and assign credentials (admin)
-POST   /applications/:id/reject       Reject application (admin)
-
-GET    /clubs                         List all clubs (admin)
-GET    /clubs/:id                     Get club details
-PATCH  /clubs/:id/status              Toggle club active/inactive (admin)
-
-GET    /clubs/:id/members             List club members
-POST   /clubs/:id/members             Add member (club head)
-DELETE /clubs/:clubId/members/:id     Remove member (club head)
-
-GET    /clubs/:id/events              List club events
-POST   /clubs/:id/events              Add event (club head)
-DELETE /clubs/:clubId/events/:id      Remove event (club head)
-
-GET    /rules                         List all rules (public)
-POST   /rules                         Add custom rule (admin)
-DELETE /rules/:id                     Remove rule (admin)
-
-PATCH  /users/credentials             Change credentials (club head, once only)
-```
 
 ---
 
