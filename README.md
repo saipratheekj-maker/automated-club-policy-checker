@@ -23,8 +23,6 @@ UniClub replaces manual administrator review with an automated policy engine tha
 
 ---
 
----
-
 ## Features
 
 ### Landing Page
@@ -84,8 +82,6 @@ members        -- Club members with name, role, and club reference
 events         -- Club events and announcements with date
 rules          -- All policy rules including custom rules added by admin
 ```
-
----
 
 ---
 
