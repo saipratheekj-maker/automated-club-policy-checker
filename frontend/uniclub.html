@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UniClub — University Club Policy System</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --white:#ffffff;--black:#0a0a0a;
+  --g50:#f9f9f9;--g100:#f2f2f2;--g200:#e4e4e4;--g300:#d0d0d0;
+  --g500:#888;--g700:#444;
+  --green:#1a6b3a;--gbg:#f0faf4;--gbdr:#b3dfc5;
+  --red:#b91c1c;--rbg:#fef2f2;--rbdr:#fca5a5;
+  --bbg:#eff6ff;--bbdr:#bfdbfe;--btxt:#1e40af;
+  --abg:#fffbeb;--abdr:#fcd34d;--atxt:#92400e;
+  --r:8px;--rl:13px;
+  font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+}
+body{background:#fff;color:#0a0a0a;font-size:14px;line-height:1.6;min-height:100vh}
+.hidden{display:none!important}
+.screen{display:none}
+.screen.on{display:flex;flex-direction:column;min-height:100vh}
+
+/* ── ALL BUTTONS BLACK ── */
+button,
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:9px 20px;border-radius:var(--r);cursor:pointer;
+  font-size:13px;font-weight:500;border:none;
+  background:#0a0a0a;color:#fff;
+  font-family:inherit;transition:background .12s;
+  white-space:nowrap;text-decoration:none;
+}
+button:hover,.btn:hover{background:#2a2a2a}
+button:disabled,.btn:disabled{background:#999;cursor:not-allowed}
+.btn-sm{padding:6px 13px;font-size:12px}
+.btn-w{width:100%;justify-content:center}
+.btn-outline{background:#fff!important;color:#0a0a0a!important;border:1.5px solid #0a0a0a!important}
+.btn-outline:hover{background:var(--g100)!important}
+
+/* ── LANDING ── */
+#s-landing{align-items:center;justify-content:center;text-align:center;padding:60px 20px}
+.land-eyebrow{font-size:11px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--g500);margin-bottom:24px}
+.land-title{font-size:44px;font-weight:800;letter-spacing:-2px;margin-bottom:12px}
+.land-sub{font-size:16px;color:var(--g500);max-width:400px;margin:0 auto 40px}
+.land-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.land-admin{margin-top:20px;font-size:12px;color:var(--g500)}
+.land-admin span{cursor:pointer;text-decoration:underline;color:#0a0a0a;font-weight:500}
+
+/* ── AUTH ── */
+#s-login,#s-admin-login{align-items:center;justify-content:center;padding:40px 16px;background:var(--g50)}
+#s-register{align-items:center;justify-content:flex-start;padding:32px 16px;background:var(--g50)}
+.auth-card{background:#fff;border:1px solid var(--g200);border-radius:var(--rl);padding:32px;width:100%;max-width:440px}
+.auth-card.wide{max-width:640px}
+.auth-back{font-size:13px;color:var(--g500);cursor:pointer;margin-bottom:20px;display:inline-flex;align-items:center;gap:4px}
+.auth-back:hover{color:#0a0a0a}
+.auth-title{font-size:22px;font-weight:700;margin-bottom:4px}
+.auth-sub{font-size:13px;color:var(--g500);margin-bottom:24px}
+
+/* ── FIELDS ── */
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;color:var(--g700);margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;padding:9px 12px;border:1px solid var(--g200);border-radius:var(--r);font-size:13px;font-family:inherit;outline:none;background:#fff;color:#0a0a0a;transition:border .12s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#0a0a0a}
+.field textarea{resize:vertical;min-height:72px}
+.field .hint{font-size:11px;color:var(--g500);margin-top:4px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+.sec-sep{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--g500);margin:22px 0 14px;padding-top:14px;border-top:1px solid var(--g200)}
+
+/* ── ALERTS ── */
+.alert{border-radius:var(--r);padding:10px 14px;font-size:13px;margin-bottom:14px}
+.a-err{background:var(--rbg);color:var(--red);border:1px solid var(--rbdr)}
+.a-ok{background:var(--gbg);color:var(--green);border:1px solid var(--gbdr)}
+.a-info{background:var(--bbg);color:var(--btxt);border:1px solid var(--bbdr)}
+.a-warn{background:var(--abg);color:var(--atxt);border:1px solid var(--abdr)}
+
+/* ── RULE HINTS (dynamic) ── */
+.rule-hint{background:var(--bbg);border:1px solid var(--bbdr);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--btxt);margin-bottom:14px}
+.rule-hint strong{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;font-weight:700}
+.rule-hint-item{padding:2px 0;display:flex;align-items:flex-start;gap:6px}
+.rule-hint-item::before{content:"▸";flex-shrink:0;margin-top:1px;opacity:.6}
+
+/* ── APP SHELL ── */
+#s-app-admin,#s-app-club{background:var(--g50)}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:54px;border-bottom:1px solid var(--g200);background:#fff;position:sticky;top:0;z-index:50;flex-shrink:0}
+.topbar-left{display:flex;align-items:center;gap:20px}
+.app-logo{font-size:15px;font-weight:800;letter-spacing:-.5px}
+.nav-tabs{display:flex;gap:2px}
+.nav-tab{padding:6px 14px;border-radius:var(--r);cursor:pointer;font-size:13px;font-weight:500;border:none;background:none;color:var(--g500);font-family:inherit;transition:all .12s}
+.nav-tab:hover{background:var(--g100);color:#0a0a0a}
+.nav-tab.on{background:#0a0a0a;color:#fff}
+.topbar-right{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--g500)}
+.app-body{padding:24px;flex:1}
+.panel{display:none}.panel.on{display:block}
+
+/* ── STATS ── */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:24px}
+.stat-card{background:#fff;border:1px solid var(--g200);border-radius:var(--rl);padding:16px 18px}
+.stat-lbl{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--g500);margin-bottom:4px}
+.stat-num{font-size:28px;font-weight:800;letter-spacing:-1px}
+.sn-g{color:var(--green)}.sn-r{color:var(--red)}.sn-a{color:#b45309}
+
+/* ── TABLE ── */
+.tbl-wrap{background:#fff;border:1px solid var(--g200);border-radius:var(--rl);overflow:hidden;margin-bottom:20px}
+.tbl-bar{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--g200)}
+.tbl-bar input,.tbl-bar select{padding:7px 11px;border:1px solid var(--g200);border-radius:var(--r);font-size:13px;font-family:inherit;outline:none;background:#fff;color:#0a0a0a}
+.tbl-bar input{flex:1}.tbl-bar input:focus,.tbl-bar select:focus{border-color:#0a0a0a}
+.tbl-heading{font-size:14px;font-weight:600;padding:14px 18px;border-bottom:1px solid var(--g200)}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--g500);padding:9px 14px;border-bottom:1px solid var(--g200);background:var(--g50);font-weight:500}
+td{padding:11px 14px;font-size:13px;border-bottom:1px solid var(--g100);vertical-align:middle;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--g50)}
+.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
+.bg{background:var(--gbg);color:var(--green)}
+.br{background:var(--rbg);color:var(--red)}
+.ba{background:var(--abg);color:var(--atxt)}
+.bgr{background:var(--g100);color:var(--g500)}
+
+/* ── CARDS ── */
+.sec-card{background:#fff;border:1px solid var(--g200);border-radius:var(--rl);padding:20px 22px;margin-bottom:16px}
+.sec-title{font-size:15px;font-weight:600;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--g200)}
+.kv{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--g100);font-size:13px}
+.kv:last-child{border-bottom:none}
+.kv-k{color:var(--g500)}.kv-v{font-weight:500;text-align:right}
+
+/* ── VERDICT ── */
+.verdict{border-radius:var(--rl);padding:14px 16px;margin-bottom:14px}
+.vp{background:var(--gbg);border:1px solid var(--gbdr)}
+.vf{background:var(--rbg);border:1px solid var(--rbdr)}
+.v-title{font-weight:600;font-size:14px;margin-bottom:6px}
+.vp .v-title{color:var(--green)}.vf .v-title{color:var(--red)}
+.v-row{display:flex;gap:8px;font-size:12px;padding:4px 0;border-bottom:1px solid rgba(0,0,0,.05)}
+.v-row:last-child{border-bottom:none}
+.v-rule{font-weight:600;color:var(--g700)}.v-msg{color:var(--g500)}
+
+/* ── MODALS ── */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
+.modal-bg.open{display:flex}
+.modal-box{background:#fff;border-radius:var(--rl);padding:28px;width:100%;max-width:620px;position:relative}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.modal-title{font-size:17px;font-weight:700}
+.modal-close{cursor:pointer;font-size:22px;color:var(--g500);background:none;border:none;line-height:1;padding:0;font-family:inherit}
+.modal-close:hover{color:#0a0a0a;background:none}
+.modal-footer{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;padding-top:16px;border-top:1px solid var(--g200)}
+
+/* ── CREDS ASSIGN BOX ── */
+.creds-assign{background:var(--g50);border:2px solid #0a0a0a;border-radius:var(--rl);padding:18px 20px;margin-top:16px}
+.creds-assign-title{font-size:13px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.creds-assign-sub{font-size:12px;color:var(--g500);margin-bottom:14px}
+.creds-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* ── EMAIL PREVIEW ── */
+.email-preview{background:var(--g50);border:1px solid var(--g200);border-radius:var(--r);padding:14px;font-size:12px;line-height:1.75;white-space:pre-wrap;font-family:'Courier New',monospace;color:var(--g700);max-height:240px;overflow-y:auto;margin-top:8px}
+
+/* ── LIST ROWS ── */
+.list-row{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:var(--g50);border-radius:var(--r);margin-bottom:6px;font-size:13px;border:1px solid var(--g100)}
+.lr-name{font-weight:500}.lr-meta{font-size:11px;color:var(--g500);margin-top:1px}
+.add-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.add-row input{flex:1;min-width:120px;padding:8px 12px;border:1px solid var(--g200);border-radius:var(--r);font-size:13px;font-family:inherit;outline:none;background:#fff}
+.add-row input:focus{border-color:#0a0a0a}
+
+/* ── RULES PANEL ── */
+.rule-card{background:#fff;border:1px solid var(--g200);border-radius:var(--rl);padding:14px 18px;margin-bottom:10px}
+.rule-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.rule-id{font-family:monospace;font-size:11px;background:var(--g100);padding:2px 8px;border-radius:4px;color:var(--g500);white-space:nowrap}
+.rule-name{font-weight:600;font-size:13px;margin:5px 0 3px}
+.rule-cat{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--g500)}
+.rule-if{font-family:monospace;font-size:12px;background:var(--g50);border:1px solid var(--g200);padding:6px 10px;border-radius:var(--r);margin-top:8px;word-break:break-all}
+.rule-then{font-family:monospace;font-size:12px;background:var(--rbg);border:1px solid var(--rbdr);padding:6px 10px;border-radius:var(--r);margin-top:5px;word-break:break-all}
+.rule-english{font-size:12px;color:var(--btxt);font-style:italic;margin-top:6px;padding:5px 10px;background:var(--bbg);border-radius:var(--r)}
+
+/* ── ADD RULE BOX ── */
+.add-rule-box{background:#fff;border:2px solid #0a0a0a;border-radius:var(--rl);padding:20px 22px;margin-bottom:24px}
+.add-rule-title{font-size:14px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.note-box{background:var(--abg);border:1px solid var(--abdr);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--atxt);margin-bottom:12px}
+.note-box strong{display:block;margin-bottom:3px;font-size:11px;text-transform:uppercase;letter-spacing:.5px}
+.examples-box{background:var(--g50);border:1px solid var(--g200);border-radius:var(--r);padding:12px 14px;margin-bottom:14px;font-size:12px}
+.ex-title{font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--g700);margin-bottom:8px}
+.ex-item{padding:3px 0;color:var(--g700);display:flex;align-items:flex-start;gap:6px}
+.ex-item::before{content:"→";color:var(--g500);flex-shrink:0}
+.parse-result{border-radius:var(--r);padding:12px 14px;margin-top:10px;font-size:13px;display:none}
+.pr-ok{background:var(--gbg);border:1px solid var(--gbdr)}
+.pr-fail{background:var(--rbg);border:1px solid var(--rbdr)}
+.parse-actions{display:none;gap:8px;margin-top:10px}
+
+/* ── TOAST ── */
+.toast-host{position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:#0a0a0a;color:#fff;padding:10px 16px;border-radius:var(--r);font-size:13px;opacity:0;transform:translateY(8px);transition:all .25s;max-width:300px;pointer-events:none}
+.toast.in{opacity:1;transform:translateY(0)}
+.toast.tok{background:var(--green)}.toast.ter{background:var(--red)}
+
+/* ── MISC ── */
+.empty-state{text-align:center;padding:44px 20px;color:var(--g500);font-size:13px}
+hr.div{border:none;border-top:1px solid var(--g200);margin:16px 0}
+</style>
+</head>
+<body>
+<div class="toast-host" id="toastHost"></div>
+
+<!-- ══════════════════════════ LANDING ══════════════════════════ -->
+<div class="screen on" id="s-landing">
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px 20px">
+    <div class="land-eyebrow">University Club Portal</div>
+    <div class="land-title">UniClub</div>
+    <div class="land-sub">Automated Policy Checker &amp; Club Management System</div>
+    <div class="land-btns">
+      <button onclick="show('s-login')">Sign In to Club Account</button>
+      <button class="btn-outline" onclick="show('s-register')">Apply — Create Club Account</button>
+    </div>
+    <div class="land-admin">University administrator? <span onclick="show('s-admin-login')">Admin sign in</span></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ CLUB LOGIN ══════════════════════════ -->
+<div class="screen" id="s-login">
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:40px 16px;background:var(--g50)">
+    <div class="auth-card">
+      <div class="auth-back" onclick="show('s-landing')">← Back</div>
+      <div class="auth-title">Club Account Sign In</div>
+      <div class="auth-sub">Use the credentials provided by the university upon approval</div>
+      <div id="login-err" class="alert a-err hidden"></div>
+      <div class="field"><label>Username</label><input id="li-user" type="text" placeholder="Assigned username"></div>
+      <div class="field"><label>Password</label><input id="li-pass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="btn-w" style="margin-top:6px" onclick="doLogin()">Sign In</button>
+      <div style="margin-top:14px;font-size:12px;color:var(--g500);text-align:center">No account yet? <span style="cursor:pointer;text-decoration:underline;color:#0a0a0a" onclick="show('s-register')">Submit an application</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ ADMIN LOGIN ══════════════════════════ -->
+<div class="screen" id="s-admin-login">
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:40px 16px;background:var(--g50)">
+    <div class="auth-card">
+      <div class="auth-back" onclick="show('s-landing')">← Back</div>
+      <div class="auth-title">Administrator Sign In</div>
+      <div class="auth-sub">University administration access only</div>
+      <div id="adm-err" class="alert a-err hidden"></div>
+      <div class="field"><label>Username</label><input id="adm-user" type="text" placeholder="admin"></div>
+      <div class="field"><label>Password</label><input id="adm-pass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doAdminLogin()"></div>
+      <button class="btn-w" style="margin-top:6px" onclick="doAdminLogin()">Sign In as Administrator</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ REGISTER ══════════════════════════ -->
+<div class="screen" id="s-register">
+  <div style="flex:1;display:flex;align-items:flex-start;justify-content:center;padding:32px 16px;background:var(--g50)">
+    <div class="auth-card wide">
+      <div class="auth-back" onclick="show('s-landing')">← Back to home</div>
+      <div class="auth-title">Apply to Register a Club</div>
+      <div class="auth-sub">The university will review your application. If approved you will receive login credentials by email.</div>
+      <div id="reg-err" class="alert a-err hidden"></div>
+      <div id="reg-ok" class="alert a-ok hidden"></div>
+
+      <div class="sec-sep">Your Contact Details</div>
+      <div class="two-col">
+        <div class="field"><label>Full Name</label><input id="r-cname" type="text" placeholder="e.g. Arjun Sharma"></div>
+        <div class="field"><label>Email Address</label><input id="r-email" type="email" placeholder="you@example.com"><div class="hint">Credentials emailed here if approved</div></div>
+      </div>
+
+      <div class="sec-sep">Club Information</div>
+      <div id="hint-clubinfo" class="rule-hint"></div>
+      <div class="two-col">
+        <div class="field"><label>Club Name</label><input id="r-name" type="text" placeholder="e.g. Robotics Society"></div>
+        <div class="field"><label>Category</label>
+          <select id="r-cat" onchange="updateCategoryHints()">
+            <option value="">Select…</option>
+            <option>Academic</option><option>Sports</option><option>Cultural</option>
+            <option>Arts</option><option>Tech</option><option>Community Service</option>
+            <option>Religious</option><option>Debate</option><option>Environmental</option>
+          </select>
+        </div>
+      </div>
+      <div class="field"><label>Club Description / Goals</label><textarea id="r-desc" placeholder="What does this club aim to do? (minimum 20 characters)"></textarea></div>
+
+      <div class="sec-sep">Membership Details</div>
+      <div id="hint-membership" class="rule-hint"></div>
+      <div class="two-col">
+        <div class="field"><label>Active Members</label><input id="r-members" type="number" min="0" placeholder="e.g. 15"></div>
+        <div class="field"><label>Distinct Majors</label><input id="r-majors" type="number" min="0" placeholder="e.g. 3"></div>
+        <div class="field"><label>Female Members (%)</label><input id="r-female" type="number" min="0" max="100" placeholder="e.g. 40"></div>
+      </div>
+
+      <div class="sec-sep">Leadership</div>
+      <div id="hint-leadership" class="rule-hint"></div>
+      <div class="two-col">
+        <div class="field"><label>President Year</label>
+          <select id="r-pres"><option value="">Select…</option><option>Freshman</option><option>Sophomore</option><option>Junior</option><option>Senior</option></select>
+        </div>
+        <div class="field"><label>Treasurer Assigned?</label>
+          <select id="r-treas"><option value="">Select…</option><option value="yes">Yes</option><option value="no">No</option></select>
+        </div>
+      </div>
+
+      <div class="sec-sep">Faculty Advisor</div>
+      <div id="hint-advising" class="rule-hint"></div>
+      <div class="two-col">
+        <div class="field"><label>Advisor Name</label><input id="r-adv" type="text" placeholder="Prof. Sharma"></div>
+        <div class="field"><label>Advisor Email</label><input id="r-advemail" type="text" placeholder="prof@university.edu"></div>
+      </div>
+
+      <div class="sec-sep">Governance</div>
+      <div id="hint-governance" class="rule-hint"></div>
+      <div class="two-col">
+        <div class="field"><label>Constitution Filed?</label>
+          <select id="r-const"><option value="">Select…</option><option value="yes">Yes</option><option value="no">No</option></select>
+        </div>
+        <div class="field"><label>Meetings / Month</label><input id="r-meetings" type="number" min="0" placeholder="e.g. 4"></div>
+      </div>
+
+      <div id="hint-category" class="rule-hint hidden" style="margin-top:14px"></div>
+
+      <div style="display:flex;gap:10px;margin-top:22px;flex-wrap:wrap">
+        <button class="btn-outline" onclick="checkRegPolicy()">Check Policy</button>
+        <button onclick="submitApplication()">Submit Application</button>
+      </div>
+      <div id="reg-verdict" style="margin-top:16px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ ADMIN APP ══════════════════════════ -->
+<div class="screen" id="s-app-admin">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="app-logo">UniClub</div>
+      <div class="nav-tabs">
+        <button class="nav-tab on" onclick="admTab(this,'p-dash')">Dashboard</button>
+        <button class="nav-tab" onclick="admTab(this,'p-apps')">Applications</button>
+        <button class="nav-tab" onclick="admTab(this,'p-clubs')">Clubs</button>
+        <button class="nav-tab" onclick="admTab(this,'p-rules')">Rule Base</button>
+      </div>
+    </div>
+    <div class="topbar-right">University Admin <button class="btn-sm" onclick="logout()">Sign Out</button></div>
+  </div>
+  <div class="app-body">
+
+    <!-- Dashboard -->
+    <div class="panel on" id="p-dash">
+      <div class="stats-row" id="adm-stats"></div>
+      <div class="tbl-wrap">
+        <div class="tbl-heading">Recent Applications</div>
+        <div class="tbl-bar"><input type="text" placeholder="Search applications…" oninput="renderAppsTable(this.value,'','adm-dash-tbl')"></div>
+        <div id="adm-dash-tbl"></div>
+      </div>
+    </div>
+
+    <!-- Applications -->
+    <div class="panel" id="p-apps">
+      <div class="tbl-wrap">
+        <div class="tbl-bar">
+          <input type="text" id="apps-q" placeholder="Search…" oninput="renderAppsTable(this.value,g('apps-sf').value,'adm-apps-tbl')">
+          <select id="apps-sf" onchange="renderAppsTable(g('apps-q').value,this.value,'adm-apps-tbl')">
+            <option value="">All statuses</option><option>pending</option><option>approved</option><option>rejected</option>
+          </select>
+        </div>
+        <div id="adm-apps-tbl"></div>
+      </div>
+    </div>
+
+    <!-- Clubs -->
+    <div class="panel" id="p-clubs">
+      <div class="tbl-wrap">
+        <div class="tbl-bar"><input type="text" placeholder="Search clubs…" oninput="renderAdmClubs(this.value)"></div>
+        <div id="adm-clubs-tbl"></div>
+      </div>
+    </div>
+
+    <!-- Rules -->
+    <div class="panel" id="p-rules">
+      <div class="add-rule-box">
+        <div class="add-rule-title">&#10133; Add a New Policy Rule</div>
+        <div class="note-box">
+          <strong>Note — How to write a rule sentence</strong>
+          Write a simple English sentence that describes a club requirement. Use clear keywords such as <em>"must have"</em>, <em>"at least"</em>, <em>"must not exceed"</em>, or <em>"must be"</em>. The system will automatically convert it into a formal policy rule and show it to you for confirmation before saving.
+        </div>
+        <div class="examples-box">
+          <div class="ex-title">Examples of valid rule sentences</div>
+          <div class="ex-item">A club must have at least 15 members</div>
+          <div class="ex-item">A club must have at least 3 meetings per month</div>
+          <div class="ex-item">Female members must be at least 30 percent</div>
+          <div class="ex-item">A club must have a faculty advisor</div>
+          <div class="ex-item">A club must have a constitution</div>
+          <div class="ex-item">A club must have a treasurer</div>
+          <div class="ex-item">President must be Junior or Senior</div>
+          <div class="ex-item">Sports clubs must have at least 20 members</div>
+          <div class="ex-item">Female members must be at least 40 percent</div>
+          <div class="ex-item">A club must have at least 5 meetings per month</div>
+        </div>
+        <div class="field"><label>Type your rule in plain English</label>
+          <input type="text" id="new-rule-input" placeholder="e.g. A club must have at least 15 members" onkeydown="if(event.key==='Enter')parseAndPreviewRule()">
+        </div>
+        <button class="btn-sm" onclick="parseAndPreviewRule()">Parse Rule</button>
+        <div id="parse-result" class="parse-result"></div>
+        <div id="parse-actions" class="parse-actions">
+          <button class="btn-sm" onclick="confirmAddRule()">Confirm &amp; Save Rule</button>
+          <button class="btn-sm btn-outline" onclick="cancelParse()">Cancel</button>
+        </div>
+      </div>
+      <div id="rules-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════ CLUB APP ══════════════════════════ -->
+<div class="screen" id="s-app-club">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="app-logo" id="club-logo">My Club</div>
+      <div class="nav-tabs">
+        <button class="nav-tab on" onclick="clubTab(this,'p-overview')">Overview</button>
+        <button class="nav-tab" onclick="clubTab(this,'p-members')">Members</button>
+        <button class="nav-tab" onclick="clubTab(this,'p-events')">Events</button>
+        <button class="nav-tab" onclick="clubTab(this,'p-settings')">Settings</button>
+      </div>
+    </div>
+    <div class="topbar-right" id="club-topbar-user">— <button class="btn-sm" onclick="logout()">Sign Out</button></div>
+  </div>
+  <div class="app-body">
+
+    <div class="panel on" id="p-overview"><div id="cl-overview-content"></div></div>
+
+    <div class="panel" id="p-members">
+      <div class="sec-card">
+        <div class="sec-title">Members</div>
+        <div class="add-row">
+          <input type="text" id="new-mem-name" placeholder="Full name">
+          <input type="text" id="new-mem-role" placeholder="Year / Major">
+          <button class="btn-sm" onclick="addMember()">Add Member</button>
+        </div>
+        <div id="members-list"></div>
+      </div>
+    </div>
+
+    <div class="panel" id="p-events">
+      <div class="sec-card">
+        <div class="sec-title">Events &amp; Announcements</div>
+        <div class="add-row">
+          <input type="text" id="ev-name" placeholder="Event / Announcement name">
+          <input type="date" id="ev-date">
+          <button class="btn-sm" onclick="addEvent()">Add</button>
+        </div>
+        <div id="events-list"></div>
+      </div>
+    </div>
+
+    <div class="panel" id="p-settings">
+      <div class="sec-card" style="max-width:440px">
+        <div class="sec-title">Change Login Credentials</div>
+        <div id="creds-ok" class="alert a-ok hidden">Credentials updated. You may only change them once.</div>
+        <div id="creds-warn" class="alert a-warn hidden"></div>
+        <div id="creds-err" class="alert a-err hidden"></div>
+        <div class="field"><label>New Username</label><input id="new-uname" type="text" placeholder="Choose a username"></div>
+        <div class="field"><label>New Password</label><input id="new-pass" type="password" placeholder="Choose a password"></div>
+        <div class="field"><label>Confirm Password</label><input id="conf-pass" type="password" placeholder="Repeat password"></div>
+        <button onclick="changeCredentials()">Update Credentials</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ REVIEW MODAL ══ -->
+<div id="modal-review" class="modal-bg">
+  <div class="modal-box" style="max-width:660px">
+    <div class="modal-hdr">
+      <div class="modal-title" id="modal-review-title">Review Application</div>
+      <button class="modal-close" onclick="closeModal('modal-review')">&#215;</button>
+    </div>
+    <div id="modal-review-body"></div>
+    <div class="modal-footer" id="modal-review-footer"></div>
+  </div>
+</div>
+
+<!-- ══ ASSIGN CREDS MODAL ══ -->
+<div id="modal-creds" class="modal-bg">
+  <div class="modal-box" style="max-width:500px">
+    <div class="modal-hdr">
+      <div class="modal-title">Assign Login Credentials</div>
+      <button class="modal-close" onclick="closeModal('modal-creds')">&#215;</button>
+    </div>
+    <div id="modal-creds-info" style="font-size:13px;color:var(--g500);margin-bottom:4px"></div>
+    <div class="creds-assign">
+      <div class="creds-assign-title">&#128274; Set Club Owner Credentials</div>
+      <div class="creds-assign-sub">Assign the username and password for this club owner. These will be included in the approval email sent to the applicant.</div>
+      <div class="creds-row">
+        <div class="field"><label>Username</label><input id="ca-user" type="text" placeholder="e.g. robotics2025"></div>
+        <div class="field"><label>Password</label><input id="ca-pass" type="text" placeholder="e.g. R0b0t$2025"></div>
+      </div>
+    </div>
+    <div id="ca-err" class="alert a-err hidden" style="margin-top:12px"></div>
+    <div class="modal-footer">
+      <button class="btn-outline" onclick="closeModal('modal-creds')">Cancel</button>
+      <button onclick="sendApprovalMail()">&#9993;&nbsp; Send Mail &amp; Approve</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ EMAIL SENT MODAL ══ -->
+<div id="modal-email" class="modal-bg">
+  <div class="modal-box" style="max-width:580px">
+    <div class="modal-hdr">
+      <div class="modal-title" id="modal-email-title">Email Dispatched</div>
+      <button class="modal-close" onclick="closeModal('modal-email')">&#215;</button>
+    </div>
+    <div id="modal-email-body"></div>
+    <div class="modal-footer"><button onclick="closeModal('modal-email')">Done</button></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// DATABASE
+// ══════════════════════════════════════════════════════
+const ADMIN_CREDS = {user:'admin', pass:'admin123'};
+let currentUser = null, currentRole = null, pendingApprovalAppId = null, pendingParsedRule = null;
+let ruleCounter = 100;
+
+let DB = {
+  applications: [
+    {id:'app1',contactName:'Priya Nair',email:'priya@example.com',clubName:'Robotics Society',category:'Tech',members:16,majors:4,female:38,presYear:'Senior',treasurer:'yes',advisor:'Prof. Sharma',advEmail:'sharma@university.edu',constitution:'yes',meetings:4,desc:'Building autonomous robots and competing nationally in robotics events.',status:'pending',date:'2025-06-01',assignedUser:null,assignedPass:null},
+    {id:'app2',contactName:'Dev Mehta',email:'dev@example.com',clubName:'Art Collective',category:'Arts',members:7,majors:1,female:65,presYear:'Sophomore',treasurer:'no',advisor:'',advEmail:'',constitution:'no',meetings:1,desc:'Painting.',status:'pending',date:'2025-06-02',assignedUser:null,assignedPass:null},
+    {id:'app3',contactName:'Ananya Reddy',email:'ananya@example.com',clubName:'Marathon Club',category:'Sports',members:20,majors:5,female:45,presYear:'Junior',treasurer:'yes',advisor:'Prof. Singh',advEmail:'singh@university.edu',constitution:'yes',meetings:5,desc:'Long distance running events and fitness training for all students.',status:'approved',date:'2025-05-20',assignedUser:'marathon01',assignedPass:'Mrt$8291'},
+    {id:'app4',contactName:'Riya Kapoor',email:'riya@example.com',clubName:'Chess Society',category:'Academic',members:6,majors:1,female:30,presYear:'Freshman',treasurer:'yes',advisor:'Prof. Kumar',advEmail:'kumar@university.edu',constitution:'yes',meetings:2,desc:'Chess tournaments and training sessions.',status:'rejected',date:'2025-05-18',assignedUser:null,assignedPass:null},
+  ],
+  clubs: [
+    {id:'c1',appId:'app3',name:'Marathon Club',category:'Sports',status:'active',headUser:'marathon01',members:[{name:'Ananya Reddy',role:'Club Head',isHead:true},{name:'Ravi Singh',role:'Junior / CS'},{name:'Meena Das',role:'Senior / Physics'}],events:[{name:'Annual 5K Run',date:'2025-07-10'},{name:'Fitness Orientation',date:'2025-06-20'}],credsChanged:false},
+  ],
+  users: [
+    {username:'marathon01',password:'Mrt$8291',clubId:'c1',credsChanged:false},
+  ],
+  rules: [
+    {id:'R01',cat:'Membership',  name:'Minimum active members',         condition:'members < 10',                              message:'Needs at least 10 active members.',                   fn:a=>a.members<10,                                               custom:false},
+    {id:'R02',cat:'Membership',  name:'Maximum members limit',          condition:'members > 200',                             message:'Cannot exceed 200 members.',                          fn:a=>a.members>200,                                              custom:false},
+    {id:'R03',cat:'Leadership',  name:'President eligibility',          condition:'presYear NOT IN (Junior, Senior)',           message:'President must be Junior or Senior.',                 fn:a=>!['Senior','Junior'].includes(a.presYear),                  custom:false},
+    {id:'R04',cat:'Diversity',   name:'Multi-major requirement',        condition:'majors < 2',                                message:'Must include members from at least 2 majors.',        fn:a=>a.majors<2,                                                 custom:false},
+    {id:'R05',cat:'Diversity',   name:'Gender diversity (≥20% female)', condition:'female_pct < 20',                           message:'Female percentage must be at least 20%.',             fn:a=>a.female<20,                                                custom:false},
+    {id:'R06',cat:'Advising',    name:'Faculty advisor required',       condition:'advisor IS NULL',                           message:'A faculty advisor must be assigned.',                 fn:a=>!a.advisor,                                                 custom:false},
+    {id:'R07',cat:'Advising',    name:'Advisor university email',       condition:"advisor_email NOT LIKE '%@university.edu'", message:'Advisor email must end in @university.edu.',          fn:a=>a.advisor&&!a.advEmail.includes('@university.edu'),          custom:false},
+    {id:'R08',cat:'Governance',  name:'Written constitution required',  condition:"constitution != 'yes'",                     message:'Club must have a written constitution.',              fn:a=>a.constitution!=='yes',                                     custom:false},
+    {id:'R09',cat:'Governance',  name:'Treasurer required',             condition:"treasurer != 'yes'",                        message:'A treasurer must be appointed.',                      fn:a=>a.treasurer!=='yes',                                        custom:false},
+    {id:'R10',cat:'Governance',  name:'Min meetings per month',         condition:'meetings < 2',                              message:'Must hold at least 2 meetings per month.',            fn:a=>a.meetings<2,                                               custom:false},
+    {id:'R11',cat:'Activity',    name:'Description length',             condition:'description < 20 chars',                    message:'Description must be at least 20 characters.',         fn:a=>!a.desc||a.desc.length<20,                                  custom:false},
+    {id:'R12',cat:'Sports',      name:'Sports: min 15 members',         condition:"category='Sports' AND members < 15",         message:'Sports clubs need at least 15 members.',              fn:a=>a.category==='Sports'&&a.members<15,                         custom:false},
+    {id:'R13',cat:'Sports',      name:'Sports: min 4 meetings/month',   condition:"category='Sports' AND meetings < 4",         message:'Sports clubs need at least 4 meetings/month.',        fn:a=>a.category==='Sports'&&a.meetings<4,                         custom:false},
+    {id:'R14',cat:'Academic',    name:'Academic: faculty required',     condition:"category='Academic' AND advisor IS NULL",    message:'Academic clubs require a faculty advisor.',           fn:a=>a.category==='Academic'&&!a.advisor,                         custom:false},
+    {id:'R15',cat:'Cultural',    name:'Cultural: multi-major',          condition:"category='Cultural' AND majors < 3",         message:'Cultural clubs need members from at least 3 majors.', fn:a=>a.category==='Cultural'&&a.majors<3,                        custom:false},
+    {id:'R17',cat:'Membership',  name:'Members >= majors claimed',      condition:'members < majors',                          message:'Member count must be ≥ number of majors claimed.',    fn:a=>a.members<a.majors,                                         custom:false},
+    {id:'R18',cat:'Finance',     name:'Treasurer for >20 members',      condition:"members > 20 AND treasurer != 'yes'",        message:'Clubs with more than 20 members must have a treasurer.',fn:a=>a.members>20&&a.treasurer!=='yes',                        custom:false},
+    {id:'R19',cat:'Religious',   name:'Religious: ≥30% female',         condition:"category='Religious' AND female_pct < 30",   message:'Religious clubs need at least 30% female membership.', fn:a=>a.category==='Religious'&&a.female<30,                     custom:false},
+    {id:'R20',cat:'Environmental',name:'Environmental: min 3 meetings', condition:"category='Environmental' AND meetings < 3",  message:'Environmental clubs need at least 3 meetings/month.', fn:a=>a.category==='Environmental'&&a.meetings<3,                 custom:false},
+  ]
+};
+
+// ══════════════════════════════════════════════════════
+// INFERENCE ENGINE
+// ══════════════════════════════════════════════════════
+function runRules(app) {
+  const violations = [], passes = [];
+  DB.rules.forEach(r => {
+    try { r.fn(app) ? violations.push({rule:r, msg:r.message}) : passes.push(r); }
+    catch(e) { passes.push(r); }
+  });
+  return {violations, passes, ok: violations.length === 0};
+}
+
+// ══════════════════════════════════════════════════════
+// DYNAMIC FORM HINTS — updates whenever rules change
+// ══════════════════════════════════════════════════════
+const HINT_MAP = {
+  'hint-clubinfo':   ['Activity'],
+  'hint-membership': ['Membership','Diversity'],
+  'hint-leadership': ['Leadership','Finance'],
+  'hint-advising':   ['Advising'],
+  'hint-governance': ['Governance'],
+};
+
+function updateFormHints() {
+  Object.entries(HINT_MAP).forEach(([hintId, cats]) => {
+    const el = document.getElementById(hintId);
+    if (!el) return;
+    const rules = DB.rules.filter(r => cats.includes(r.cat));
+    if (!rules.length) { el.innerHTML = ''; return; }
+    el.innerHTML = `<strong>Policy Rules — ${cats.join(' / ')}</strong>` +
+      rules.map(r => `<div class="rule-hint-item">${r.message}</div>`).join('');
+  });
+  updateCategoryHints();
+}
+
+function updateCategoryHints() {
+  const cat = (document.getElementById('r-cat') || {}).value || '';
+  const el = document.getElementById('hint-category');
+  if (!el) return;
+  if (!cat) { el.classList.add('hidden'); return; }
+  const catRules = DB.rules.filter(r => r.cat === cat || r.condition.toLowerCase().includes(`category='${cat.toLowerCase()}'`) || r.condition.toLowerCase().includes(`category="${cat.toLowerCase()}"`));
+  if (!catRules.length) { el.classList.add('hidden'); return; }
+  el.classList.remove('hidden');
+  el.innerHTML = `<strong>Policy Rules — ${cat} Clubs</strong>` +
+    catRules.map(r => `<div class="rule-hint-item">${r.message}</div>`).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// RULE PARSER — inbuilt NLP
+// ══════════════════════════════════════════════════════
+function parseRuleSentence(sentence) {
+  const s = sentence.toLowerCase().trim();
+  const getNum  = str => { const m = str.match(/\d+/); return m ? parseInt(m[0]) : null; };
+  const getPct  = str => { const m = str.match(/(\d+)\s*(?:percent|%)/); return m ? parseInt(m[1]) : null; };
+  const hasCat  = (str, cat) => str.includes(cat.toLowerCase());
+
+  const isMember   = s.includes('member');
+  const isMeeting  = s.includes('meeting');
+  const isFemale   = s.includes('female') || s.includes('women') || s.includes('woman');
+  const isMajor    = s.includes('major') || s.includes('department') || s.includes('discipline');
+  const isAdvisor  = s.includes('advisor') || s.includes('adviser') || s.includes('faculty');
+  const isConst    = s.includes('constitution') || s.includes('charter');
+  const isTreas    = s.includes('treasurer') || s.includes('finance officer');
+  const isPres     = s.includes('president') || s.includes('leader');
+  const isAtLeast  = s.includes('at least') || s.includes('minimum') || s.includes('must have') || s.includes('must hold');
+  const isExceed   = s.includes('must not exceed') || s.includes('no more than') || s.includes('maximum') || s.includes('not more than');
+
+  // Members
+  if (isMember && isAtLeast) {
+    const n = getNum(s); if (!n) return null;
+    if (hasCat(s,'sports'))      return build('Sports',     `Sports clubs must have at least ${n} members`,      `category='Sports' AND members < ${n}`,      `Sports clubs need at least ${n} members.`,      a=>a.category==='Sports'&&a.members<n);
+    if (hasCat(s,'cultural'))    return build('Cultural',   `Cultural clubs must have at least ${n} members`,    `category='Cultural' AND members < ${n}`,    `Cultural clubs need at least ${n} members.`,    a=>a.category==='Cultural'&&a.members<n);
+    if (hasCat(s,'academic'))    return build('Academic',   `Academic clubs must have at least ${n} members`,    `category='Academic' AND members < ${n}`,    `Academic clubs need at least ${n} members.`,    a=>a.category==='Academic'&&a.members<n);
+    if (hasCat(s,'environmental'))return build('Environmental',`Environmental clubs must have at least ${n} members`,`category='Environmental' AND members < ${n}`,`Environmental clubs need at least ${n} members.`,a=>a.category==='Environmental'&&a.members<n);
+    if (hasCat(s,'religious'))   return build('Religious',  `Religious clubs must have at least ${n} members`,   `category='Religious' AND members < ${n}`,   `Religious clubs need at least ${n} members.`,   a=>a.category==='Religious'&&a.members<n);
+    if (hasCat(s,'arts'))        return build('Arts',       `Arts clubs must have at least ${n} members`,        `category='Arts' AND members < ${n}`,        `Arts clubs need at least ${n} members.`,        a=>a.category==='Arts'&&a.members<n);
+    if (hasCat(s,'tech'))        return build('Tech',       `Tech clubs must have at least ${n} members`,        `category='Tech' AND members < ${n}`,        `Tech clubs need at least ${n} members.`,        a=>a.category==='Tech'&&a.members<n);
+    return build('Membership', `Club must have at least ${n} members`, `members < ${n}`, `Needs at least ${n} active members.`, a=>a.members<n);
+  }
+  if (isMember && isExceed) {
+    const n = getNum(s); if (!n) return null;
+    return build('Membership', `Club must not exceed ${n} members`, `members > ${n}`, `Cannot exceed ${n} members.`, a=>a.members>n);
+  }
+
+  // Meetings
+  if (isMeeting && isAtLeast) {
+    const n = getNum(s); if (!n) return null;
+    if (hasCat(s,'sports'))      return build('Sports',      `Sports clubs must have at least ${n} meetings/month`,      `category='Sports' AND meetings < ${n}`,      `Sports clubs need at least ${n} meetings/month.`,      a=>a.category==='Sports'&&a.meetings<n);
+    if (hasCat(s,'cultural'))    return build('Cultural',    `Cultural clubs must have at least ${n} meetings/month`,    `category='Cultural' AND meetings < ${n}`,    `Cultural clubs need at least ${n} meetings/month.`,    a=>a.category==='Cultural'&&a.meetings<n);
+    if (hasCat(s,'environmental'))return build('Environmental',`Environmental clubs must have at least ${n} meetings/month`,`category='Environmental' AND meetings < ${n}`,`Environmental clubs need at least ${n} meetings/month.`,a=>a.category==='Environmental'&&a.meetings<n);
+    if (hasCat(s,'academic'))    return build('Academic',    `Academic clubs must have at least ${n} meetings/month`,    `category='Academic' AND meetings < ${n}`,    `Academic clubs need at least ${n} meetings/month.`,    a=>a.category==='Academic'&&a.meetings<n);
+    if (hasCat(s,'religious'))   return build('Religious',   `Religious clubs must have at least ${n} meetings/month`,   `category='Religious' AND meetings < ${n}`,   `Religious clubs need at least ${n} meetings/month.`,   a=>a.category==='Religious'&&a.meetings<n);
+    return build('Governance', `Club must hold at least ${n} meetings per month`, `meetings < ${n}`, `Must hold at least ${n} meetings per month.`, a=>a.meetings<n);
+  }
+
+  // Female percentage
+  if (isFemale && isAtLeast) {
+    const p = getPct(s) || getNum(s); if (!p) return null;
+    if (hasCat(s,'religious')) return build('Religious',`Religious clubs must have at least ${p}% female`,`category='Religious' AND female_pct < ${p}`,`Religious clubs need at least ${p}% female membership.`,a=>a.category==='Religious'&&a.female<p);
+    return build('Diversity', `Female members must be at least ${p}%`, `female_pct < ${p}`, `Female percentage must be at least ${p}%.`, a=>a.female<p);
+  }
+
+  // Majors
+  if (isMajor && isAtLeast) {
+    const n = getNum(s); if (!n) return null;
+    return build('Diversity', `Club must have members from at least ${n} majors`, `majors < ${n}`, `Must include members from at least ${n} majors.`, a=>a.majors<n);
+  }
+
+  // Faculty advisor
+  if (isAdvisor && (isAtLeast || s.includes('required') || s.includes('must assign') || s.includes('must appoint'))) {
+    return build('Advising','Faculty advisor required','advisor IS NULL','A faculty advisor must be assigned.',a=>!a.advisor);
+  }
+
+  // Constitution
+  if (isConst && (isAtLeast || s.includes('required') || s.includes('must file') || s.includes('must have'))) {
+    return build('Governance','Written constitution required',"constitution != 'yes'",'Club must have a written constitution.',a=>a.constitution!=='yes');
+  }
+
+  // Treasurer
+  if (isTreas && (isAtLeast || s.includes('required') || s.includes('must appoint') || s.includes('must have'))) {
+    return build('Governance','Treasurer required',"treasurer != 'yes'",'A treasurer must be appointed.',a=>a.treasurer!=='yes');
+  }
+
+  // President year
+  if (isPres && (s.includes('junior') || s.includes('senior'))) {
+    const allowed = [];
+    if (s.includes('junior')) allowed.push('Junior');
+    if (s.includes('senior')) allowed.push('Senior');
+    if (s.includes('sophomore')) allowed.push('Sophomore');
+    if (!allowed.length) return null;
+    return build('Leadership',`President must be ${allowed.join(' or ')}`,`presYear NOT IN (${allowed.join(', ')})`,`President must be ${allowed.join(' or ')}.`,a=>!allowed.includes(a.presYear));
+  }
+
+  return null;
+}
+
+function build(cat, name, condition, message, fn) {
+  return {cat, name, condition, message, fn};
+}
+
+function parseAndPreviewRule() {
+  const sentence = (document.getElementById('new-rule-input') || {}).value.trim();
+  const resultEl = document.getElementById('parse-result');
+  const actEl    = document.getElementById('parse-actions');
+  pendingParsedRule = null;
+  if (!sentence) { toast('Please enter a sentence.', 'ter'); return; }
+
+  const parsed = parseRuleSentence(sentence);
+  if (!parsed) {
+    resultEl.className = 'parse-result pr-fail';
+    resultEl.style.display = 'block';
+    resultEl.innerHTML = `<strong style="color:var(--red)">&#10007; Could not interpret this rule. Please rephrase.</strong><br>
+      <span style="font-size:12px;color:var(--g500)">Try using keywords like "must have", "at least", "must not exceed". Refer to the examples above.</span>`;
+    actEl.style.display = 'none';
+    return;
+  }
+
+  pendingParsedRule = {...parsed, sentence};
+  resultEl.className = 'parse-result pr-ok';
+  resultEl.style.display = 'block';
+  resultEl.innerHTML = `
+    <div style="color:var(--green);font-weight:600;margin-bottom:8px">&#10003; Rule interpreted — please confirm before saving:</div>
+    <div style="font-size:12px;display:grid;gap:6px">
+      <div><span style="color:var(--g500)">Category:</span> <strong>${parsed.cat}</strong></div>
+      <div><span style="color:var(--g500)">Rule Name:</span> <strong>${parsed.name}</strong></div>
+      <div><span style="color:var(--g500)">Condition:</span> <code style="background:var(--g100);padding:2px 8px;border-radius:4px;font-size:11px">${parsed.condition}</code></div>
+      <div><span style="color:var(--g500)">Rejection Message:</span> <em>${parsed.message}</em></div>
+    </div>`;
+  actEl.style.display = 'flex';
+}
+
+function confirmAddRule() {
+  if (!pendingParsedRule) return;
+  ruleCounter++;
+  DB.rules.push({
+    id: 'RC' + ruleCounter,
+    cat: pendingParsedRule.cat,
+    name: pendingParsedRule.name,
+    condition: pendingParsedRule.condition,
+    message: pendingParsedRule.message,
+    fn: pendingParsedRule.fn,
+    sentence: pendingParsedRule.sentence,
+    custom: true
+  });
+  pendingParsedRule = null;
+  document.getElementById('new-rule-input').value = '';
+  document.getElementById('parse-result').style.display = 'none';
+  document.getElementById('parse-actions').style.display = 'none';
+  renderRulesList();
+  updateFormHints();   // ← UPDATE FORM HINTS LIVE
+  toast('Rule added and form updated!', 'tok');
+}
+
+function cancelParse() {
+  pendingParsedRule = null;
+  document.getElementById('parse-result').style.display = 'none';
+  document.getElementById('parse-actions').style.display = 'none';
+  document.getElementById('new-rule-input').value = '';
+}
+
+function removeRule(ruleId) {
+  if (!confirm('Remove this rule? The application form will update immediately.')) return;
+  DB.rules = DB.rules.filter(r => r.id !== ruleId);
+  renderRulesList();
+  updateFormHints();   // ← UPDATE FORM HINTS LIVE
+  toast('Rule removed and form updated.');
+}
+
+function renderRulesList() {
+  document.getElementById('rules-list').innerHTML = DB.rules.map(r => `
+    <div class="rule-card">
+      <div class="rule-card-top">
+        <div style="flex:1;min-width:0">
+          <div class="rule-cat">${r.cat} ${r.custom ? '<span class="badge ba" style="font-size:10px;padding:1px 7px;margin-left:6px">Custom</span>' : ''}</div>
+          <div class="rule-name">${r.name}</div>
+          <div class="rule-if">IF &nbsp; ${r.condition}</div>
+          <div class="rule-then">THEN REJECT — ${r.message}</div>
+          ${r.sentence ? `<div class="rule-english">&#128172; "${r.sentence}"</div>` : ''}
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0">
+          <span class="rule-id">${r.id}</span>
+          <button class="btn-sm" style="background:var(--red)" onclick="removeRule('${r.id}')">Remove</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════════════
+function doAdminLogin() {
+  if (val('adm-user') === ADMIN_CREDS.user && val('adm-pass') === ADMIN_CREDS.pass) {
+    currentRole = 'admin';
+    show('s-app-admin');
+    renderAdminDash();
+  } else showEl('adm-err', 'Invalid credentials. Please try again.');
+}
+
+function doLogin() {
+  const user = DB.users.find(u => u.username === val('li-user') && u.password === val('li-pass'));
+  if (!user) { showEl('login-err', 'Invalid username or password.'); return; }
+  currentUser = user; currentRole = 'head';
+  const club = DB.clubs.find(c => c.id === user.clubId);
+  document.getElementById('club-logo').textContent = club ? club.name : 'My Club';
+  document.getElementById('club-topbar-user').innerHTML =
+    `<span>${user.username}</span> <button class="btn-sm" onclick="logout()">Sign Out</button>`;
+  show('s-app-club');
+  renderClubOverview();
+  if (!user.credsChanged) {
+    const w = document.getElementById('creds-warn');
+    w.textContent = 'Security notice: You are using admin-assigned credentials. Please update them in Settings.';
+    w.classList.remove('hidden');
+  }
+}
+
+function logout() { currentUser = null; currentRole = null; show('s-landing'); }
+
+// ══════════════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════════════
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  if (id === 's-register') updateFormHints();
+}
+
+function admTab(btn, panelId) {
+  document.querySelectorAll('#s-app-admin .nav-tab').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('#s-app-admin .panel').forEach(p => p.classList.remove('on'));
+  document.getElementById(panelId).classList.add('on');
+  if (panelId === 'p-dash')  renderAdminDash();
+  if (panelId === 'p-apps')  renderAppsTable('', '', 'adm-apps-tbl');
+  if (panelId === 'p-clubs') renderAdmClubs('');
+  if (panelId === 'p-rules') renderRulesList();
+}
+
+function clubTab(btn, panelId) {
+  document.querySelectorAll('#s-app-club .nav-tab').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  document.querySelectorAll('#s-app-club .panel').forEach(p => p.classList.remove('on'));
+  document.getElementById(panelId).classList.add('on');
+  if (panelId === 'p-overview') renderClubOverview();
+  if (panelId === 'p-members')  renderMembers();
+  if (panelId === 'p-events')   renderEvents();
+  if (panelId === 'p-settings') renderSettings();
+}
+
+// ══════════════════════════════════════════════════════
+// REGISTER
+// ══════════════════════════════════════════════════════
+function getRegData() {
+  return {
+    id: 'app' + Date.now(),
+    contactName: val('r-cname'), email: val('r-email'),
+    clubName: val('r-name'), category: val('r-cat'), desc: val('r-desc'),
+    members: parseInt(val('r-members')) || 0,
+    majors:  parseInt(val('r-majors'))  || 0,
+    female:  parseFloat(val('r-female'))|| 0,
+    presYear: val('r-pres'), treasurer: val('r-treas'),
+    advisor: val('r-adv'), advEmail: val('r-advemail'),
+    constitution: val('r-const'),
+    meetings: parseInt(val('r-meetings')) || 0,
+    status: 'pending', date: new Date().toISOString().split('T')[0],
+    assignedUser: null, assignedPass: null
+  };
+}
+
+function checkRegPolicy() {
+  document.getElementById('reg-verdict').innerHTML = verdictHtml(runRules(getRegData()));
+}
+
+function submitApplication() {
+  const data = getRegData();
+  if (!data.contactName || !data.email || !data.clubName || !data.category) {
+    showEl('reg-err', 'Please fill in all required fields.'); return;
+  }
+  if (DB.applications.find(a => a.clubName.toLowerCase() === data.clubName.toLowerCase())) {
+    showEl('reg-err', 'A club with this name already exists in the system.'); return;
+  }
+  DB.applications.push(data);
+  const ok = document.getElementById('reg-ok');
+  ok.textContent = `Application submitted! The university will review it and email you at ${data.email}.`;
+  ok.classList.remove('hidden');
+  document.getElementById('reg-err').classList.add('hidden');
+  document.getElementById('reg-verdict').innerHTML = '';
+  toast('Application submitted successfully!', 'tok');
+}
+
+// ══════════════════════════════════════════════════════
+// ADMIN DASHBOARD
+// ══════════════════════════════════════════════════════
+function renderAdminDash() {
+  const tot = DB.applications.length;
+  const ap  = DB.applications.filter(a => a.status === 'approved').length;
+  const rj  = DB.applications.filter(a => a.status === 'rejected').length;
+  const pe  = DB.applications.filter(a => a.status === 'pending').length;
+  document.getElementById('adm-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-lbl">Total Applications</div><div class="stat-num">${tot}</div></div>
+    <div class="stat-card"><div class="stat-lbl">Pending</div><div class="stat-num sn-a">${pe}</div></div>
+    <div class="stat-card"><div class="stat-lbl">Approved</div><div class="stat-num sn-g">${ap}</div></div>
+    <div class="stat-card"><div class="stat-lbl">Rejected</div><div class="stat-num sn-r">${rj}</div></div>
+    <div class="stat-card"><div class="stat-lbl">Active Clubs</div><div class="stat-num">${DB.clubs.filter(c=>c.status==='active').length}</div></div>
+    <div class="stat-card"><div class="stat-lbl">Policy Rules</div><div class="stat-num">${DB.rules.length}</div></div>
+  `;
+  renderAppsTable('', '', 'adm-dash-tbl');
+}
+
+function renderAppsTable(q, sf, targetId) {
+  q = (q||'').toLowerCase(); sf = sf||'';
+  const rows = DB.applications.filter(a =>
+    (!q || a.clubName.toLowerCase().includes(q) || a.contactName.toLowerCase().includes(q)) &&
+    (!sf || a.status === sf)
+  );
+  const el = document.getElementById(targetId); if (!el) return;
+  if (!rows.length) { el.innerHTML = emptyState('No applications found.'); return; }
+  el.innerHTML = `<table>
+    <thead><tr>
+      <th style="width:21%">Club</th><th style="width:12%">Category</th>
+      <th style="width:17%">Applicant</th><th style="width:10%">Date</th>
+      <th style="width:11%">Policy</th><th style="width:11%">Status</th><th style="width:18%"></th>
+    </tr></thead>
+    <tbody>${rows.map(a => {
+      const res = runRules(a);
+      const pol = res.ok ? '<span class="badge bg">Pass</span>' : `<span class="badge br">${res.violations.length} fail</span>`;
+      const sb  = {approved:'bg',rejected:'br',pending:'ba'}[a.status]||'bgr';
+      return `<tr>
+        <td style="font-weight:600">${a.clubName}</td>
+        <td>${a.category}</td>
+        <td>${a.contactName}</td>
+        <td style="color:var(--g500)">${a.date}</td>
+        <td>${pol}</td>
+        <td><span class="badge ${sb}">${a.status}</span></td>
+        <td><button class="btn-sm" onclick="openReview('${a.id}')">Review</button></td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table>`;
+}
+
+function renderAdmClubs(q) {
+  q = (q||'').toLowerCase();
+  const rows = DB.clubs.filter(c => !q || c.name.toLowerCase().includes(q));
+  const el = document.getElementById('adm-clubs-tbl');
+  if (!rows.length) { el.innerHTML = emptyState('No clubs yet.'); return; }
+  el.innerHTML = `<table>
+    <thead><tr>
+      <th style="width:20%">Club Name</th><th style="width:12%">Category</th>
+      <th style="width:9%">Members</th><th style="width:14%">Username</th>
+      <th style="width:13%">Password</th><th style="width:10%">Status</th>
+      <th style="width:12%">Credentials</th><th style="width:10%"></th>
+    </tr></thead>
+    <tbody>${rows.map(c => {
+      const app = DB.applications.find(a => a.id === c.appId) || {};
+      return `<tr>
+        <td style="font-weight:600">${c.name}</td>
+        <td>${c.category}</td>
+        <td>${c.members.length}</td>
+        <td style="font-family:monospace;font-size:12px">${c.headUser}</td>
+        <td style="font-family:monospace;font-size:12px">${app.assignedPass||'—'}</td>
+        <td><span class="badge ${c.status==='active'?'bg':'bgr'}">${c.status}</span></td>
+        <td><span class="badge ${c.credsChanged?'bg':'ba'}">${c.credsChanged?'Changed':'Original'}</span></td>
+        <td><button class="btn-sm" onclick="toggleClubStatus('${c.id}')">${c.status==='active'?'Deactivate':'Activate'}</button></td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table>`;
+}
+
+function toggleClubStatus(id) {
+  const c = DB.clubs.find(x => x.id === id);
+  if (c) { c.status = c.status === 'active' ? 'inactive' : 'active'; renderAdmClubs(''); toast('Club status updated.'); }
+}
+
+// ══════════════════════════════════════════════════════
+// REVIEW MODAL
+// ══════════════════════════════════════════════════════
+function openReview(appId) {
+  const app = DB.applications.find(a => a.id === appId); if (!app) return;
+  const res = runRules(app);
+  document.getElementById('modal-review-title').textContent = app.clubName + ' — Application Review';
+  document.getElementById('modal-review-body').innerHTML = `
+    <div class="verdict ${res.ok?'vp':'vf'}">
+      <div class="v-title">${res.ok ? '✓ All policies satisfied' : '✗ Policy violations detected'}</div>
+      <div style="font-size:12px;color:var(--g500);margin-bottom:${res.violations.length?8:0}px">
+        ${res.violations.length} violation(s) · ${res.passes.length} rules passed
+      </div>
+      ${res.violations.map(v => `
+        <div class="v-row">
+          <span style="color:var(--red);flex-shrink:0">✗</span>
+          <div><div class="v-rule">${v.rule.id} — ${v.rule.name}</div><div class="v-msg">${v.msg}</div></div>
+        </div>`).join('')}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;font-size:13px;margin-top:6px">
+      ${[['Applicant',app.contactName],['Email',app.email],['Category',app.category],
+         ['Members',app.members],['Majors',app.majors],['President Year',app.presYear],
+         ['Advisor',app.advisor||'—'],['Constitution',app.constitution],
+         ['Treasurer',app.treasurer],['Meetings/mo',app.meetings],['Female %',app.female+'%']]
+        .map(([k,v])=>`<div><span style="color:var(--g500)">${k}:</span> <strong>${v}</strong></div>`).join('')}
+    </div>
+    ${app.desc ? `<div style="margin-top:12px;font-size:13px;color:var(--g700);background:var(--g50);padding:10px 12px;border-radius:var(--r)">${app.desc}</div>` : ''}
+  `;
+  let footer = `<button class="btn-outline" onclick="closeModal('modal-review')">Close</button>`;
+  if (app.status === 'pending') {
+    footer += `<button style="background:var(--red)" onclick="doReject('${appId}')">Reject Application</button>
+               <button onclick="openAssignCreds('${appId}')">Approve — Assign Credentials</button>`;
+  } else {
+    const sb = {approved:'bg',rejected:'br'}[app.status]||'bgr';
+    footer += `<span style="font-size:12px;color:var(--g500)">Decision: <span class="badge ${sb}">${app.status}</span>${app.assignedUser?` · Username: <code>${app.assignedUser}</code>`:''}</span>`;
+  }
+  document.getElementById('modal-review-footer').innerHTML = footer;
+  openModal('modal-review');
+}
+
+// ══════════════════════════════════════════════════════
+// ASSIGN CREDENTIALS MODAL
+// ══════════════════════════════════════════════════════
+function openAssignCreds(appId) {
+  pendingApprovalAppId = appId;
+  const app = DB.applications.find(a => a.id === appId);
+  closeModal('modal-review');
+  document.getElementById('modal-creds-info').textContent =
+    `Assigning credentials for: ${app.clubName}  ·  Applicant: ${app.contactName}  ·  Email: ${app.email}`;
+  document.getElementById('ca-user').value = '';
+  document.getElementById('ca-pass').value = '';
+  document.getElementById('ca-err').classList.add('hidden');
+  openModal('modal-creds');
+}
+
+function sendApprovalMail() {
+  const uname = val('ca-user').trim();
+  const pass  = val('ca-pass').trim();
+  const errEl = document.getElementById('ca-err');
+  errEl.classList.add('hidden');
+
+  if (!uname || !pass)   { errEl.textContent = 'Please enter both username and password.'; errEl.classList.remove('hidden'); return; }
+  if (uname.length < 4)  { errEl.textContent = 'Username must be at least 4 characters.';  errEl.classList.remove('hidden'); return; }
+  if (pass.length < 6)   { errEl.textContent = 'Password must be at least 6 characters.';  errEl.classList.remove('hidden'); return; }
+  if (DB.users.find(u => u.username === uname)) { errEl.textContent = 'Username already taken. Please choose another.'; errEl.classList.remove('hidden'); return; }
+
+  const app = DB.applications.find(a => a.id === pendingApprovalAppId); if (!app) return;
+
+  // Update database
+  app.status = 'approved';
+  app.assignedUser = uname;
+  app.assignedPass = pass;
+
+  const clubId = 'c' + Date.now();
+  const club = {
+    id: clubId, appId: app.id, name: app.clubName, category: app.category,
+    status: 'active', headUser: uname,
+    members: [{name: app.contactName, role: 'Club Head', isHead: true}],
+    events: [], credsChanged: false
+  };
+  DB.clubs.push(club);
+  DB.users.push({username: uname, password: pass, clubId: clubId, credsChanged: false});
+
+  const emailBody =
+`To: ${app.email}
+From: admin@university.edu
+Subject: [UniClub] Your Club Application Has Been Approved
+
+Dear ${app.contactName},
+
+Congratulations! Your application to register "${app.clubName}" has been
+reviewed and approved by the University Club Administration.
+
+Your UniClub portal login credentials are:
+
+  Username : ${uname}
+  Password : ${pass}
+
+Sign in at: https://uniclub.university.edu
+
+IMPORTANT: For your security, you are required to change your username
+and password upon your first login. You may do this once from the
+Settings page of your club dashboard. Please keep these credentials
+confidential until then.
+
+Best regards,
+University Club Administration
+admin@university.edu`;
+
+  closeModal('modal-creds');
+  document.getElementById('modal-email-title').textContent = 'Approval Email Dispatched';
+  document.getElementById('modal-email-body').innerHTML = `
+    <div class="alert a-ok" style="margin-bottom:12px">
+      ✓ Club approved. Credentials assigned — username: <strong>${uname}</strong>, password: <strong>${pass}</strong>.
+      Email dispatched to <strong>${app.email}</strong>.
+    </div>
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--g500);margin-bottom:6px">Email Preview (simulated)</div>
+    <div class="email-preview">${emailBody}</div>`;
+  openModal('modal-email');
+  renderAdminDash();
+  toast('Club approved. Credentials sent to applicant.', 'tok');
+  pendingApprovalAppId = null;
+}
+
+function doReject(appId) {
+  const app = DB.applications.find(a => a.id === appId); if (!app) return;
+  app.status = 'rejected';
+  closeModal('modal-review');
+
+  const emailBody =
+`To: ${app.email}
+From: admin@university.edu
+Subject: [UniClub] Club Application Update
+
+Dear ${app.contactName},
+
+Thank you for your interest in registering "${app.clubName}" with the University.
+
+After a thorough review of your application against our institutional
+policy requirements, we regret to inform you that your application
+has not been approved at this time.
+
+We encourage you to:
+  1. Review the full Rule Base on the UniClub portal
+  2. Address all policy violations in your application
+  3. Resubmit your updated application
+
+If you have any questions, please contact the university administration.
+
+Best regards,
+University Club Administration
+admin@university.edu`;
+
+  document.getElementById('modal-email-title').textContent = 'Rejection Email Dispatched';
+  document.getElementById('modal-email-body').innerHTML = `
+    <div class="alert a-err" style="margin-bottom:12px">
+      Application rejected. Notification email dispatched to <strong>${app.email}</strong>.
+    </div>
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--g500);margin-bottom:6px">Email Preview (simulated)</div>
+    <div class="email-preview">${emailBody}</div>`;
+  openModal('modal-email');
+  renderAdminDash();
+  toast('Application rejected.', 'ter');
+}
+
+// ══════════════════════════════════════════════════════
+// CLUB HEAD — PANELS
+// ══════════════════════════════════════════════════════
+function getMyClub() { return DB.clubs.find(c => c.id === currentUser.clubId); }
+
+function renderClubOverview() {
+  const club = getMyClub();
+  if (!club) { document.getElementById('cl-overview-content').innerHTML = emptyState('Club not found.'); return; }
+  const app = DB.applications.find(a => a.id === club.appId) || {};
+  const res = runRules(app);
+  document.getElementById('cl-overview-content').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="sec-card">
+        <div class="sec-title">${club.name}</div>
+        <div class="kv"><span class="kv-k">Category</span><span class="kv-v">${club.category}</span></div>
+        <div class="kv"><span class="kv-k">Status</span><span class="kv-v"><span class="badge ${club.status==='active'?'bg':'bgr'}">${club.status}</span></span></div>
+        <div class="kv"><span class="kv-k">Members</span><span class="kv-v">${club.members.length}</span></div>
+        <div class="kv"><span class="kv-k">Events</span><span class="kv-v">${club.events.length}</span></div>
+        <div class="kv"><span class="kv-k">Faculty Advisor</span><span class="kv-v">${app.advisor||'—'}</span></div>
+        <div class="kv"><span class="kv-k">Meetings / Month</span><span class="kv-v">${app.meetings||'—'}</span></div>
+      </div>
+      <div class="sec-card">
+        <div class="sec-title">Policy Compliance</div>
+        <div class="verdict ${res.ok?'vp':'vf'}" style="margin-bottom:0">
+          <div class="v-title">${res.ok ? '✓ Fully compliant' : 'Policy issues detected'}</div>
+          ${res.violations.map(v=>`
+            <div class="v-row">
+              <span style="color:var(--red)">✗</span>
+              <div><div class="v-rule">${v.rule.id}</div><div class="v-msg">${v.msg}</div></div>
+            </div>`).join('')}
+          ${res.ok ? '<div style="font-size:12px;color:var(--green);margin-top:6px">All rules satisfied.</div>' : ''}
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderMembers() {
+  const club = getMyClub();
+  const el = document.getElementById('members-list');
+  if (!club.members.length) { el.innerHTML = emptyState('No members yet.'); return; }
+  el.innerHTML = club.members.map((m, i) => `
+    <div class="list-row">
+      <div>
+        <div class="lr-name">${m.name} ${m.isHead ? '<span class="badge bgr" style="font-size:10px;margin-left:4px">Head</span>' : ''}</div>
+        <div class="lr-meta">${m.role}</div>
+      </div>
+      ${!m.isHead ? `<button class="btn-sm" style="background:var(--red)" onclick="removeMember(${i})">Remove</button>` : ''}
+    </div>`).join('');
+}
+
+function addMember() {
+  const name = val('new-mem-name'), role = val('new-mem-role');
+  if (!name) { toast('Enter member name.', 'ter'); return; }
+  getMyClub().members.push({name, role: role || 'Member'});
+  document.getElementById('new-mem-name').value = '';
+  document.getElementById('new-mem-role').value = '';
+  renderMembers();
+  toast('Member added.', 'tok');
+}
+
+function removeMember(i) {
+  getMyClub().members.splice(i, 1);
+  renderMembers();
+  toast('Member removed.');
+}
+
+function renderEvents() {
+  const club = getMyClub();
+  const el = document.getElementById('events-list');
+  if (!club.events.length) { el.innerHTML = emptyState('No events yet. Add one above.'); return; }
+  el.innerHTML = club.events.map((e, i) => `
+    <div class="list-row">
+      <div><div class="lr-name">${e.name}</div><div class="lr-meta">${e.date}</div></div>
+      <button class="btn-sm" style="background:var(--red)" onclick="removeEvent(${i})">Remove</button>
+    </div>`).join('');
+}
+
+function addEvent() {
+  const name = val('ev-name'), date = val('ev-date');
+  if (!name) { toast('Enter event name.', 'ter'); return; }
+  getMyClub().events.push({name, date: date || 'TBD'});
+  document.getElementById('ev-name').value = '';
+  document.getElementById('ev-date').value = '';
+  renderEvents();
+  toast('Event added.', 'tok');
+}
+
+function removeEvent(i) {
+  getMyClub().events.splice(i, 1);
+  renderEvents();
+  toast('Event removed.');
+}
+
+function renderSettings() {
+  if (currentUser && !currentUser.credsChanged) {
+    const w = document.getElementById('creds-warn');
+    w.textContent = 'You are using admin-assigned credentials. Please change them for security.';
+    w.classList.remove('hidden');
+  }
+}
+
+function changeCredentials() {
+  const nu = val('new-uname'), np = val('new-pass'), cp = val('conf-pass');
+  const err = document.getElementById('creds-err');
+  err.classList.add('hidden');
+  if (!nu || !np)       { err.textContent = 'Please fill in all fields.';        err.classList.remove('hidden'); return; }
+  if (np !== cp)        { err.textContent = 'Passwords do not match.';           err.classList.remove('hidden'); return; }
+  if (currentUser.credsChanged) { err.textContent = 'Credentials can only be changed once.'; err.classList.remove('hidden'); return; }
+  if (DB.users.find(u => u.username === nu && u !== currentUser)) { err.textContent = 'Username already taken.'; err.classList.remove('hidden'); return; }
+
+  currentUser.username = nu;
+  currentUser.password = np;
+  currentUser.credsChanged = true;
+  const club = getMyClub();
+  if (club) { club.headUser = nu; club.credsChanged = true; }
+
+  document.getElementById('creds-ok').classList.remove('hidden');
+  document.getElementById('creds-warn').classList.add('hidden');
+  document.getElementById('new-uname').value = '';
+  document.getElementById('new-pass').value  = '';
+  document.getElementById('conf-pass').value = '';
+  document.getElementById('club-topbar-user').innerHTML =
+    `<span>${nu}</span> <button class="btn-sm" onclick="logout()">Sign Out</button>`;
+  toast('Credentials updated!', 'tok');
+}
+
+// ══════════════════════════════════════════════════════
+// MODAL HELPERS
+// ══════════════════════════════════════════════════════
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Close modals on backdrop click
+document.querySelectorAll('.modal-bg').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ══════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════
+function verdictHtml(res) {
+  return `<div class="verdict ${res.ok?'vp':'vf'}">
+    <div class="v-title">${res.ok ? '✓ All policies satisfied' : '✗ Policy violations found'}</div>
+    <div style="font-size:12px;color:var(--g500);margin-bottom:${res.violations.length?8:0}px">
+      ${res.violations.length} violation(s) · ${res.passes.length} rules passed
+    </div>
+    ${res.violations.map(v => `
+      <div class="v-row">
+        <span style="color:var(--red);flex-shrink:0">✗</span>
+        <div><div class="v-rule">${v.rule.id} — ${v.rule.name}</div><div class="v-msg">${v.msg}</div></div>
+      </div>`).join('')}
+    ${res.ok ? '<div style="font-size:12px;color:var(--green);margin-top:6px">Ready to submit!</div>' : ''}
+  </div>`;
+}
+
+function val(id) { return (document.getElementById(id)||{}).value||''; }
+function g(id)   { return document.getElementById(id); }
+function showEl(id, msg) { const e = document.getElementById(id); e.textContent = msg; e.classList.remove('hidden'); }
+function emptyState(msg) { return `<div class="empty-state">${msg}</div>`; }
+
+function toast(msg, type = '') {
+  const wrap = document.getElementById('toastHost');
+  const el = document.createElement('div');
+  el.className = 'toast' + (type ? ' ' + type : '');
+  el.textContent = msg;
+  wrap.appendChild(el);
+  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('in')));
+  setTimeout(() => { el.classList.remove('in'); setTimeout(() => el.remove(), 300); }, 3200);
+}
+
+// Init hints on load
+updateFormHints();
+</script>
+</body>
+</html>
